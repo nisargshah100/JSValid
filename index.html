@@ -1,0 +1,29 @@
+<html>
+<head>
+  <title>Validation Testing</title>
+  <script type="text/javascript" src="validation.js"></script>
+  <script type="text/javascript">
+    v = new JSValid.Validation();
+    
+    // v.validate('name', 'required');
+    // v.validate('address',
+    //   'required',
+    //   { 'min_length': 4 },
+    //   { 'max_length': 5 }
+    // );
+    // v.validate('email', 'required', 'email');
+    // v.validate('status',
+    //   { 'ex': { 'value': ['active', 'suspended'] } }
+    // )
+    // v.validate('nice', {'format': /^[a-z]+$/ })
+
+    v.validate('name', 'required', {'min_length': 4 }, { 'max_length': 40 }, { 'in': ['apple', 'banana'] });
+
+    v.isValid({ 'name': 'apple' });
+    console.log(v.errors_array());
+  </script>
+</head>
+<body>
+
+</body>
+</html>
