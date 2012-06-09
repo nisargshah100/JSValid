@@ -39,7 +39,7 @@
     }
 
     MinLengthValidation.prototype.validate = function(obj, name) {
-      if ((obj != null) && String(obj).length < this.length) {
+      if (!(obj != null) || String(obj).length < this.length) {
         return this.message;
       }
     };
@@ -83,7 +83,7 @@
       if (obj != null) {
         match = obj.match(/^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i);
       }
-      if (!match && (obj != null)) {
+      if (!match && (obj != null) && !(obj === '')) {
         return this.message;
       }
     };
@@ -105,7 +105,7 @@
     }
 
     InclusionValidation.prototype.validate = function(obj) {
-      if (__indexOf.call(this["in"], obj) < 0 && (obj != null)) {
+      if (__indexOf.call(this["in"], obj) < 0) {
         return this.message;
       }
     };
@@ -127,7 +127,7 @@
     }
 
     ExclusionValidation.prototype.validate = function(obj) {
-      if (__indexOf.call(this.ex, obj) >= 0 && (obj != null)) {
+      if (__indexOf.call(this.ex, obj) >= 0) {
         return this.message;
       }
     };
@@ -159,11 +159,13 @@
   })();
 
   JSValid.Validation = (function() {
-    var errors, validators;
 
     Validation.name = 'Validation';
 
-    function Validation() {}
+    function Validation() {
+      this.validators = {};
+      this.errors = {};
+    }
 
     Validation.rules = {
       'required': JSValid.Validator.RequiredValidation,
@@ -174,10 +176,6 @@
       'ex': JSValid.Validator.ExclusionValidation,
       'format': JSValid.Validator.FormatValidation
     };
-
-    validators = {};
-
-    errors = {};
 
     Validation.isArray = function(obj) {
       return Object.prototype.toString.apply(obj) === '[object Array]';
@@ -198,20 +196,16 @@
       return flat;
     };
 
-    Validation.prototype.errors = function() {
-      return errors;
-    };
-
     Validation.prototype.errors_array = function() {
       var error;
       return JSValid.Validation.flatten((function() {
         var _results;
         _results = [];
-        for (error in errors) {
-          _results.push(errors[error]);
+        for (error in this.errors) {
+          _results.push(this.errors[error]);
         }
         return _results;
-      })());
+      }).call(this));
     };
 
     Validation.prototype.getRule = function(rule) {
@@ -236,16 +230,16 @@
     };
 
     Validation.prototype.validate = function() {
-      var attr, rule, rule_object, rules, validator, _i, _len, _results;
+      var attr, rule, rule_object, rules, validator, _base, _i, _len, _results;
       attr = arguments[0], rules = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
       _results = [];
       for (_i = 0, _len = rules.length; _i < _len; _i++) {
         rule_object = rules[_i];
         rule = this.getRule(rule_object);
         validator = Validation.rules[rule];
-        validators[attr] || (validators[attr] = []);
+        (_base = this.validators)[attr] || (_base[attr] = []);
         if (validator) {
-          _results.push(validators[attr].push(new validator(attr, rule_object[rule])));
+          _results.push(this.validators[attr].push(new validator(attr, rule_object[rule])));
         } else {
           _results.push(void 0);
         }
@@ -254,15 +248,16 @@
     };
 
     Validation.prototype.isValid = function(obj) {
-      var attr, result, validator, _i, _len, _ref;
-      for (attr in validators) {
-        _ref = validators[attr];
+      var attr, result, validator, _base, _i, _len, _ref;
+      this.errors = {};
+      for (attr in this.validators) {
+        _ref = this.validators[attr];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           validator = _ref[_i];
           result = validator.validate(obj[attr]);
           if (result) {
-            errors[attr] || (errors[attr] = []);
-            errors[attr].push(result);
+            (_base = this.errors)[attr] || (_base[attr] = []);
+            this.errors[attr].push(result);
           }
         }
       }

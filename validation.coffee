@@ -15,7 +15,7 @@ class JSValid.Validator.MinLengthValidation
     @message ||= params?.message || "#{name} is too short. It must be atleast #{@length} characters long"
 
   validate: (obj, name) ->
-    @message if obj? and String(obj).length < @length
+    @message if not obj? or String(obj).length < @length
 
 class JSValid.Validator.MaxLengthValidation
   constructor: (name, params) ->
@@ -32,7 +32,7 @@ class JSValid.Validator.EmailValidation
 
   validate: (obj) ->
     match = obj.match /^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|pro|travel|mobi|[a-z][a-z])|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,5})?$/i if obj?
-    @message if not match and obj?
+    @message if not match and obj? and not (obj == '')
 
 class JSValid.Validator.InclusionValidation
   constructor: (name, params) ->
@@ -41,7 +41,7 @@ class JSValid.Validator.InclusionValidation
     @message ||= params?.message || "#{name} must be (#{@in.join(',')})"
 
   validate: (obj) ->
-    @message if obj not in @in and obj?
+    @message if obj not in @in
 
 class JSValid.Validator.ExclusionValidation
   constructor: (name, params) ->
@@ -50,7 +50,7 @@ class JSValid.Validator.ExclusionValidation
     @message ||= params?.message || "#{name} cannot be (#{@ex.join(',')})"
 
   validate: (obj) ->
-    @message if obj in @ex and obj?
+    @message if obj in @ex
 
 class JSValid.Validator.FormatValidation
   constructor: (name, params) ->
@@ -62,6 +62,10 @@ class JSValid.Validator.FormatValidation
     @message if not String(obj).match @format
 
 class JSValid.Validation
+  constructor: ->
+    @validators = {}
+    @errors = {}
+
   @rules =
     'required': JSValid.Validator.RequiredValidation
     'min_length': JSValid.Validator.MinLengthValidation
@@ -70,9 +74,6 @@ class JSValid.Validation
     'in': JSValid.Validator.InclusionValidation
     'ex': JSValid.Validator.ExclusionValidation
     'format': JSValid.Validator.FormatValidation
-
-  validators = {}
-  errors = {}
 
   @isArray = (obj) ->
     Object.prototype.toString.apply(obj) is '[object Array]';
@@ -88,11 +89,8 @@ class JSValid.Validation
       i++
     flat
 
-  errors: ->
-    errors
-
   errors_array: ->
-    JSValid.Validation.flatten(errors[error] for error of errors)
+    JSValid.Validation.flatten(@errors[error] for error of @errors)
 
   getRule: (rule) ->
     if typeof(rule) is 'string'
@@ -105,16 +103,17 @@ class JSValid.Validation
     for rule_object in rules
       rule = @getRule(rule_object)
       validator = Validation.rules[rule]
-      validators[attr] ||= []
-      validators[attr].push(new validator(attr, rule_object[rule])) if validator
+      @validators[attr] ||= []
+      @validators[attr].push(new validator(attr, rule_object[rule])) if validator
 
   isValid: (obj) ->
-    for attr of validators
-      for validator in validators[attr]
+    @errors = {}
+    for attr of @validators
+      for validator in @validators[attr]
         result = validator.validate(obj[attr])
         if result
-          errors[attr] ||= []
-          errors[attr].push(result)
+          @errors[attr] ||= []
+          @errors[attr].push(result)
 
     @errors_array().length is 0
 

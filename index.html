@@ -19,7 +19,7 @@
 
     v.validate('name', 'required', {'min_length': 4 }, { 'max_length': 40 }, { 'in': ['apple', 'banana'] });
 
-    v.isValid({ 'name': 'apple' });
+    v.isValid({ 'name': '' });
     console.log(v.errors_array());
   </script>
 </head>
