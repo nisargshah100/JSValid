@@ -24,14 +24,18 @@
       });
       it('name is required', function() {
         var value, _i, _len, _ref;
-        this.v.validate('name', 'required');
+        this.v.validate('name', {
+          required: {
+            message: 'Required!'
+          }
+        });
         _ref = [null, ''];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           value = _ref[_i];
           this.v.isValid({
             name: value
           });
-          expect(this.v.errors_array()).toContain('name is required');
+          expect(this.v.errors_array()).toContain('Required!');
         }
         this.v.isValid({
           name: 'testing'
@@ -40,14 +44,18 @@
       });
       it('email is a valid email address', function() {
         var value, _i, _len, _ref;
-        this.v.validate('email', 'email');
+        this.v.validate('email', {
+          email: {
+            message: 'Email!'
+          }
+        });
         _ref = ['a@', 'a@a', '@a.com', 'foo@nice'];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           value = _ref[_i];
           this.v.isValid({
             email: value
           });
-          expect(this.v.errors_array()).toContain('email is invalid');
+          expect(this.v.errors_array()).toContain('Email!');
         }
         this.v.isValid({
           email: 'foo@foo.com'
@@ -57,7 +65,10 @@
       it('name has a minimum length', function() {
         var value, _i, _len, _ref;
         this.v.validate('name', {
-          'min_length': 4
+          'min_length': {
+            value: 4,
+            message: 'Too Short!'
+          }
         });
         _ref = ['', 'a', 'ab', 'abc'];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -65,7 +76,7 @@
           this.v.isValid({
             name: value
           });
-          expect(this.v.errors_array()).toContain('name is too short. It must be atleast 4 characters long');
+          expect(this.v.errors_array()).toContain('Too Short!');
         }
         this.v.isValid({
           name: 'appl'
@@ -75,7 +86,10 @@
       it('name has a maximum length', function() {
         var value, _i, _len, _ref;
         this.v.validate('name', {
-          'max_length': 4
+          'max_length': {
+            value: 4,
+            message: 'Too Long!'
+          }
         });
         _ref = ['abcde', 'abcdef', '9284912'];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -83,7 +97,7 @@
           this.v.isValid({
             name: value
           });
-          expect(this.v.errors_array()).toContain('name is too long. It can be atmost 4 characters long');
+          expect(this.v.errors_array()).toContain('Too Long!');
         }
         this.v.isValid({
           name: 'appl'
@@ -93,7 +107,10 @@
       it('status must be active, suspended, or deleted', function() {
         var value, _i, _len, _ref;
         this.v.validate('status', {
-          'in': ['active', 'suspended', 'deleted']
+          'in': {
+            value: ['active', 'suspended', 'deleted'],
+            message: 'status is not in list!'
+          }
         });
         _ref = [null, '', 'apple', 'test', 123];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -101,7 +118,7 @@
           this.v.isValid({
             status: value
           });
-          expect(this.v.errors_array()).toContain('status must be (active,suspended,deleted)');
+          expect(this.v.errors_array()).toContain('status is not in list!');
         }
         this.v.isValid({
           status: 'active'
@@ -111,7 +128,10 @@
       it('status cannot be active or deleted', function() {
         var value, _i, _len, _ref;
         this.v.validate('status', {
-          'ex': ['active', 'deleted']
+          'ex': {
+            value: ['active', 'deleted'],
+            message: 'Nope!'
+          }
         });
         _ref = ['active', 'deleted'];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -119,7 +139,7 @@
           this.v.isValid({
             status: value
           });
-          expect(this.v.errors_array()).toContain('status cannot be (active,deleted)');
+          expect(this.v.errors_array()).toContain('Nope!');
         }
         this.v.isValid({
           status: 'suspended'
@@ -129,7 +149,10 @@
       return it('validates format', function() {
         var value, _i, _len, _ref;
         this.v.validate('cost', {
-          'format': /^[0-9]+$/
+          'format': {
+            value: /^[0-9]+$/,
+            message: 'number only!'
+          }
         });
         _ref = [null, '', 'apple', 'a0', '2a', '1a1'];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -137,7 +160,7 @@
           this.v.isValid({
             cost: value
           });
-          expect(this.v.errors_array()).toContain("cost doesn't match format");
+          expect(this.v.errors_array()).toContain("number only!");
         }
         this.v.isValid({
           cost: 12

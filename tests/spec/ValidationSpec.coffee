@@ -16,69 +16,70 @@ describe 'Validation', ->
       @v = new JSValid.Validation()
 
     it 'name is required', ->
-      @v.validate('name', 'required')
+      @v.validate('name', required: { message: 'Required!' })
       for value in [null, '']
         @v.isValid(name: value)
-        expect(@v.errors_array()).toContain('name is required')
+        expect(@v.errors_array()).toContain('Required!')
 
       @v.isValid(name: 'testing')
       @success()
 
     it 'email is a valid email address', ->
-      @v.validate('email', 'email')
+      @v.validate('email', email: { message: 'Email!' })
       for value in ['a@', 'a@a', '@a.com', 'foo@nice']
         @v.isValid(email: value)
-        expect(@v.errors_array()).toContain('email is invalid')
+        expect(@v.errors_array()).toContain('Email!')
 
       @v.isValid(email: 'foo@foo.com')
       @success()
 
     it 'name has a minimum length', ->
-      @v.validate('name', 'min_length': 4)
+      @v.validate('name', 'min_length': { value: 4, message: 'Too Short!'})
       for value in ['', 'a', 'ab', 'abc']
         @v.isValid(name: value)
-        expect(@v.errors_array())
-          .toContain('name is too short. It must be atleast 4 characters long')
+        expect(@v.errors_array()).toContain('Too Short!')
 
       @v.isValid(name: 'appl')
       @success()
 
     it 'name has a maximum length', ->
-      @v.validate('name', 'max_length': 4)
+      @v.validate('name', 'max_length': { value: 4, message: 'Too Long!' })
       for value in ['abcde', 'abcdef', '9284912']
         @v.isValid(name: value)
-        expect(@v.errors_array())
-          .toContain('name is too long. It can be atmost 4 characters long')
+        expect(@v.errors_array()).toContain('Too Long!')
 
       @v.isValid(name: 'appl')
       @success()
 
     it 'status must be active, suspended, or deleted', ->
-      @v.validate('status', 'in': ['active', 'suspended', 'deleted'])
+      @v.validate('status', 
+        'in': { 
+          value: ['active', 'suspended', 'deleted'], 
+          message: 'status is not in list!'
+        }
+      )
+
       for value in [null, '', 'apple', 'test', 123]
         @v.isValid(status: value)
-        expect(@v.errors_array())
-          .toContain('status must be (active,suspended,deleted)')
+        expect(@v.errors_array()).toContain('status is not in list!')
 
       @v.isValid(status: 'active')
       @success()
 
     it 'status cannot be active or deleted', ->
-      @v.validate('status', 'ex': ['active', 'deleted'])
+      @v.validate('status', 'ex': { value: ['active', 'deleted'], message: 'Nope!' })
       for value in ['active', 'deleted']
         @v.isValid(status: value)
-        expect(@v.errors_array())
-          .toContain('status cannot be (active,deleted)')
+        expect(@v.errors_array()).toContain('Nope!')
 
       @v.isValid(status: 'suspended')
       @success()
 
     it 'validates format', ->
-      @v.validate('cost', 'format': /^[0-9]+$/)
+      @v.validate('cost', 'format': { value: /^[0-9]+$/, message: 'number only!' })
       for value in [null, '', 'apple', 'a0', '2a', '1a1']
         @v.isValid(cost: value)
-        expect(@v.errors_array())
-          .toContain("cost doesn't match format")
+        expect(@v.errors_array()).toContain("number only!")
 
       @v.isValid(cost: 12)
       @success()
